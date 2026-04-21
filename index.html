@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Generador de Contraseñas Seguras</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f4f4f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 1.5rem;
+    }
+
+    .password-box {
+      background: #f7f6f2;
+      border: 1px solid #e0deda;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+      min-height: 58px;
+    }
+
+    .password-text {
+      font-family: 'Courier New', monospace;
+      font-size: 15px;
+      color: #1a1a1a;
+      word-break: break-all;
+      flex: 1;
+      letter-spacing: 1px;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid #d0ceca;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: #555;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .copy-btn:hover { background: #f0ede8; }
+    .copy-btn.copied { color: #0f6e56; border-color: #0f6e56; }
+
+    .section { margin-bottom: 1.25rem; }
+
+    .label {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .label span { font-weight: 600; color: #1a1a1a; }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: #533AB7;
+      height: 4px;
+      cursor: pointer;
+    }
+
+    .checkboxes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #1a1a1a;
+      cursor: pointer;
+      background: #fafaf8;
+      border: 1px solid #e8e6e1;
+      border-radius: 8px;
+      padding: 8px 12px;
+      transition: background 0.15s;
+    }
+
+    .check-item:hover { background: #f0ede8; }
+
+    .check-item input {
+      accent-color: #533AB7;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .strength-bar {
+      display: flex;
+      gap: 4px;
+      margin-top: 1.25rem;
+    }
+
+    .bar-seg {
+      flex: 1;
+      height: 5px;
+      border-radius: 99px;
+      background: #e0deda;
+      transition: background 0.3s;
+    }
+
+    .strength-label {
+      font-size: 12px;
+      color: #888;
+      margin-top: 6px;
+    }
+
+    .gen-btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 1.25rem;
+      border-radius: 10px;
+      border: 1px solid #d0ceca;
+      background: #533AB7;
+      color: #ffffff;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .gen-btn:hover { background: #3C2999; }
+    .gen-btn:active { transform: scale(0.98); }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #bbb;
+      margin-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Generador de Contraseñas</h1>
+    <p class="subtitle">Crea contraseñas fuertes y únicas al instante.</p>
+
+    <div class="password-box">
+      <span class="password-text" id="pwd-display">Haz clic en generar</span>
+      <button class="copy-btn" id="copy-btn" onclick="copyPwd()">Copiar</button>
+    </div>
+
+    <div class="section">
+      <div class="label">Longitud <span id="len-val">16</span> caracteres</div>
+      <input type="range" min="8" max="40" value="16" step="1" id="length-slider"
+        oninput="updateLen(this.value)" onchange="generate()">
+    </div>
+
+    <div class="section">
+      <div class="label" style="margin-bottom:8px;">Incluir</div>
+      <div class="checkboxes">
+        <label class="check-item"><input type="checkbox" id="ch-upper" checked onchange="generate()"> Mayúsculas (A-Z)</label>
+        <label class="check-item"><input type="checkbox" id="ch-lower" checked onchange="generate()"> Minúsculas (a-z)</label>
+        <label class="check-item"><input type="checkbox" id="ch-num" checked onchange="generate()"> Números (0-9)</label>
+        <label class="check-item"><input type="checkbox" id="ch-sym" onchange="generate()"> Símbolos (!@#$)</label>
+      </div>
+    </div>
+
+    <div class="strength-bar">
+      <div class="bar-seg" id="s1"></div>
+      <div class="bar-seg" id="s2"></div>
+      <div class="bar-seg" id="s3"></div>
+      <div class="bar-seg" id="s4"></div>
+    </div>
+    <div class="strength-label" id="strength-txt">Genera una contraseña para ver su fortaleza</div>
+
+    <button class="gen-btn" onclick="generate()">Generar contraseña</button>
+
+    <p class="footer">Creado con Claude &mdash; Tarea de Informática</p>
+  </div>
+
+  <script>
+    const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const LOWER = 'abcdefghijklmnopqrstuvwxyz';
+    const NUMS  = '0123456789';
+    const SYMS  = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+
+    function updateLen(v) {
+      document.getElementById('len-val').textContent = v;
+    }
+
+    function generate() {
+      const len   = parseInt(document.getElementById('length-slider').value);
+      const upper = document.getElementById('ch-upper').checked;
+      const lower = document.getElementById('ch-lower').checked;
+      const nums  = document.getElementById('ch-num').checked;
+      const syms  = document.getElementById('ch-sym').checked;
+
+      let charset = '';
+      if (upper) charset += UPPER;
+      if (lower) charset += LOWER;
+      if (nums)  charset += NUMS;
+      if (syms)  charset += SYMS;
+
+      if (!charset) {
+        document.getElementById('pwd-display').textContent = 'Selecciona al menos una opción';
+        updateStrength(0);
+        return;
+      }
+
+      let pwd = '';
+      const arr = new Uint32Array(len);
+      crypto.getRandomValues(arr);
+      for (let i = 0; i < len; i++) {
+        pwd += charset[arr[i] % charset.length];
+      }
+
+      document.getElementById('pwd-display').textContent = pwd;
+      updateStrength(calcStrength(len, upper, lower, nums, syms));
+      document.getElementById('copy-btn').textContent = 'Copiar';
+      document.getElementById('copy-btn').classList.remove('copied');
+    }
+
+    function calcStrength(len, upper, lower, nums, syms) {
+      let score = 0;
+      const types = [upper, lower, nums, syms].filter(Boolean).length;
+      if (len >= 12) score++;
+      if (len >= 16) score++;
+      if (types >= 2) score++;
+      if (types >= 3) score++;
+      return score;
+    }
+
+    function updateStrength(score) {
+      const colors = ['', '#E24B4A', '#EF9F27', '#1D9E75', '#0F6E56'];
+      const labels = ['—', 'Débil', 'Regular', 'Fuerte', 'Muy fuerte'];
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById('s' + i).style.background = i <= score ? colors[score] : '#e0deda';
+      }
+      document.getElementById('strength-txt').textContent = 'Fortaleza: ' + labels[score];
+    }
+
+    function copyPwd() {
+      const pwd = document.getElementById('pwd-display').textContent;
+      if (!pwd || pwd === 'Haz clic en generar' || pwd.includes('opción')) return;
+      navigator.clipboard.writeText(pwd).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = '¡Copiado!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
